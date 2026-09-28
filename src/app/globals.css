@@ -1,0 +1,188 @@
+@import 'tailwindcss';
+
+/* Tailwind v4 is configured in CSS rather than tailwind.config.js. Every
+   token below becomes a utility — `--color-nova` gives `text-nova`,
+   `bg-nova`, `border-nova`, and so on. */
+@theme {
+  --color-void: #04060f;
+  --color-deep: #070b1a;
+  --color-panel: #0b1226;
+  --color-hull: #131c36;
+
+  /* Accent ramp, named after the scene rather than the hue so the palette
+     can be retuned without renaming every usage. */
+  --color-nova: #7fe7ff;
+  --color-nova-dim: #3fb8e6;
+  --color-plasma: #c4a3ff;
+  --color-solar: #ffb347;
+  --color-relay: #f472b6;
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue',
+    Arial, sans-serif;
+  /* The HUD chrome is monospace throughout — it is what makes readouts read
+     as instrumentation rather than as body copy. */
+  --font-mono: ui-monospace, 'SF Mono', 'Cascadia Mono', 'Segoe UI Mono', 'Roboto Mono',
+    Menlo, Consolas, monospace;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    background-color: var(--color-void);
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: transparent;
+    color: rgb(226 232 240);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background-color: color-mix(in srgb, var(--color-nova) 35%, transparent);
+    color: #ffffff;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-nova);
+    outline-offset: 2px;
+  }
+
+  /* The 3D scene already conveys depth; honour a reduced-motion request by
+     dropping scroll animation too. The scene itself is disabled separately
+     in CosmosBackdrop. */
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
+}
+
+@layer components {
+  /* Frosted instrument panel used by every content section and HUD element. */
+  .panel {
+    background-color: color-mix(in srgb, var(--color-panel) 72%, transparent);
+    border: 1px solid rgb(255 255 255 / 0.08);
+    border-radius: 1rem;
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    box-shadow:
+      0 1px 0 0 rgb(255 255 255 / 0.05) inset,
+      0 24px 60px -30px rgb(0 0 0 / 0.9);
+  }
+
+  /* Overlay chrome — the NOVA console, HUD buttons — sits over page copy as
+     well as over the scene, so it cannot rely on backdrop-blur alone for
+     legibility (and some browsers drop backdrop-filter entirely). Nearly
+     opaque by design. */
+  .panel-solid {
+    /* Fully opaque, not 95-ish: without backdrop-filter support even a few
+       percent of transparency lets body copy show through and the console
+       becomes hard to read. */
+    background-color: var(--color-panel);
+    border: 1px solid rgb(255 255 255 / 0.1);
+    border-radius: 1rem;
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    box-shadow:
+      0 1px 0 0 rgb(255 255 255 / 0.06) inset,
+      0 30px 70px -25px rgb(0 0 0 / 0.95);
+  }
+
+  .panel-hover {
+    transition:
+      border-color 200ms ease,
+      transform 200ms ease,
+      box-shadow 200ms ease;
+  }
+
+  .panel-hover:hover {
+    border-color: color-mix(in srgb, var(--color-nova) 40%, transparent);
+    transform: translateY(-2px);
+    box-shadow:
+      0 1px 0 0 rgb(255 255 255 / 0.07) inset,
+      0 30px 70px -30px color-mix(in srgb, var(--color-nova) 25%, black);
+  }
+
+  /* Small uppercase monospace label — section eyebrows, HUD keys, chips. */
+  .hud-label {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--color-nova) 80%, white);
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.25rem 0.625rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-family: var(--font-mono);
+    color: rgb(203 213 225);
+    background-color: rgb(255 255 255 / 0.05);
+    border: 1px solid rgb(255 255 255 / 0.08);
+  }
+}
+
+@layer utilities {
+  /* Static star pinpricks behind the canvas. Pure CSS so it paints before any
+     JavaScript runs and remains the backdrop when the scene is switched off. */
+  .starfield-fallback {
+    background-image:
+      radial-gradient(1px 1px at 12% 22%, rgb(255 255 255 / 0.8), transparent),
+      radial-gradient(1px 1px at 68% 14%, rgb(255 255 255 / 0.6), transparent),
+      radial-gradient(1.5px 1.5px at 36% 62%, rgb(255 255 255 / 0.7), transparent),
+      radial-gradient(1px 1px at 84% 48%, rgb(255 255 255 / 0.55), transparent),
+      radial-gradient(1px 1px at 22% 82%, rgb(255 255 255 / 0.65), transparent),
+      radial-gradient(1.5px 1.5px at 92% 78%, rgb(255 255 255 / 0.5), transparent),
+      radial-gradient(1px 1px at 52% 36%, rgb(255 255 255 / 0.45), transparent),
+      radial-gradient(1px 1px at 8% 54%, rgb(255 255 255 / 0.5), transparent);
+    background-size: 100% 100%;
+    opacity: 0.85;
+  }
+
+  .text-balance-pretty {
+    text-wrap: pretty;
+  }
+
+  @keyframes cosmos-pulse {
+    0%,
+    100% {
+      opacity: 0.45;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+
+  .animate-cosmos-pulse {
+    animation: cosmos-pulse 2.4s ease-in-out infinite;
+  }
+
+  @keyframes cosmos-rise {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .animate-cosmos-rise {
+    animation: cosmos-rise 600ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+}

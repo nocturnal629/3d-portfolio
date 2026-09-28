@@ -1,0 +1,25 @@
+# Build artifacts and dependencies are recreated inside the image.
+node_modules
+.next
+out
+dist
+
+# Never bake secrets into an image layer.
+.env
+.env.*
+!.env.local.example
+
+# Not needed at runtime.
+.git
+.github
+.vercel
+.claude
+api-tests
+*.md
+!README.md
+Dockerfile
+.dockerignore
+docker-compose.yml
+*.log
+*.tsbuildinfo
+.DS_Store
