@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
 import { PerformanceMonitor, Stars } from '@react-three/drei';
 import { Bloom, EffectComposer, Vignette } from '@react-three/postprocessing';
@@ -20,19 +20,26 @@ interface CosmosSceneProps {
  *  fill-rate bound, not geometry bound, so every 0.25 here costs real frames. */
 const MAX_DPR = { high: 1.5, low: 1 } as const;
 
-/** Rescales the render resolution to whatever the GPU actually sustains.
+/** Rescales the render resolution to whatever the GPU actually sustains, and
+ *  reports when lowering it further has stopped helping.
  *
  *  Device class is guessed from CPU core count (see lib/device.ts), which says
- *  nothing about the GPU — an 8-core laptop on integrated graphics reports as
- *  `high` and then struggles with the bloom pass. Measuring real frame times
- *  and backing off is the only heuristic that holds across both. */
-function AdaptiveResolution({ max }: { max: number }) {
+ *  nothing about the GPU — an 8-core desktop with weak or software-rendered
+ *  graphics reports as `high` and then struggles with the bloom pass.
+ *  Measuring real frame times is the only heuristic that holds across both. */
+function AdaptiveResolution({ max, onExhausted }: { max: number; onExhausted: () => void }) {
   const setDpr = useThree((state) => state.setDpr);
 
   return (
     <PerformanceMonitor
       // factor is 0 when frame times are bad and 1 when there is headroom.
-      onChange={({ factor }) => setDpr(1 + factor * (max - 1))}
+      onChange={({ factor }) => {
+        setDpr(1 + factor * (max - 1));
+        // Already down to 1x and still not keeping up: what is left to cut is
+        // the post-processing stack, not the pixel count.
+        if (factor === 0) onExhausted();
+      }}
+      onFallback={onExhausted}
     />
   );
 }
@@ -40,6 +47,16 @@ function AdaptiveResolution({ max }: { max: number }) {
 export default function CosmosScene({ quality }: CosmosSceneProps) {
   const pointer = useRef({ x: 0, y: 0 });
   const setSceneReady = useCosmos((state) => state.setSceneReady);
+
+  // Post-processing is the single most expensive thing in the scene, and it is
+  // the only real difference between this path and the `low` one that phones
+  // get — which run the scene smoothly. So it is what gets dropped when the
+  // resolution climbdown is not enough to hold a framerate.
+  const [postFx, setPostFx] = useState(quality === 'high');
+
+  // Deliberately one-way. Re-enabling on recovery would oscillate, because
+  // the recovery is caused by the thing being off.
+  const dropPostFx = useCallback(() => setPostFx(false), []);
 
   useEffect(() => {
     // Tracked on the window rather than through r3f's pointer events because
@@ -94,7 +111,7 @@ export default function CosmosScene({ quality }: CosmosSceneProps) {
 
       <CameraRig pointer={pointer} />
 
-      {quality === 'high' && (
+      {postFx && (
         // multisampling defaults to 8 in this library, which on a fill-rate
         // bound scene is the single most expensive setting in the whole app.
         // 2 keeps edges acceptable at a quarter of the sample cost.
@@ -114,7 +131,9 @@ export default function CosmosScene({ quality }: CosmosSceneProps) {
         </EffectComposer>
       )}
 
-      {quality === 'high' && <AdaptiveResolution max={MAX_DPR.high} />}
+      {quality === 'high' && (
+        <AdaptiveResolution max={MAX_DPR.high} onExhausted={dropPostFx} />
+      )}
     </Canvas>
   );
 }
