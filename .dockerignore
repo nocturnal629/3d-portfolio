@@ -7,7 +7,6 @@ dist
 # Never bake secrets into an image layer.
 .env
 .env.*
-!.env.local.example
 
 # Not needed at runtime.
 .git

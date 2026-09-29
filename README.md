@@ -47,9 +47,12 @@ Requires Node.js 20.9+.
 
 ```bash
 npm install
-cp .env.local.example .env.local   # then fill in the values you need
 npm run dev
 ```
+
+NOVA needs `CLOUDIQ_API_KEY` and `CLOUDIQ_BASE_URL` in `.env.local` to answer;
+without them `/api/chat` returns a clean 503 and the rest of the site works
+normally.
 
 Open <http://localhost:3002>.
 

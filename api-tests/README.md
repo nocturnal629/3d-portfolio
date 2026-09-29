@@ -83,9 +83,8 @@ skipped unless you opt in:
 NOVA_LIVE_TESTS=1 pytest -v
 ```
 
-Those need `CLOUDIQ_API_KEY` set for the Next.js server (see
-`.env.local.example` in the repo root); without it the route returns 503 and
-the live tests fail.
+Those need `CLOUDIQ_API_KEY` and `CLOUDIQ_BASE_URL` set for the Next.js server;
+without them the route returns 503 and the live tests fail.
 
 ### Notes on the ideas tests
 

@@ -5,8 +5,11 @@ import type { ChatMessage } from '@/types';
 /** CloudIQ is a self-hosted AI gateway. It speaks an OpenAI-compatible
  *  `/v1/chat/completions` shape, authenticates with an `X-API-Key` header
  *  instead of a bearer token, and adds its own `served_model` field reporting
- *  which upstream model actually answered after its internal fallback chain. */
-const DEFAULT_BASE_URL = 'https://REDACTED-GATEWAY-HOST';
+ *  which upstream model actually answered after its internal fallback chain.
+ *
+ *  Its address comes from `CLOUDIQ_BASE_URL` and is deliberately not defaulted
+ *  here: this repository is public, and a fallback baked into the source
+ *  publishes the gateway's address to anyone reading it. */
 
 /** CloudIQ's own default: a router that scores prompt complexity and
  *  dispatches to a tier, with the gateway walking its remaining model list if
@@ -43,13 +46,14 @@ interface CloudIQCompletion {
 }
 
 function baseUrl(): string {
-  return (process.env.CLOUDIQ_BASE_URL || DEFAULT_BASE_URL).replace(/\/+$/, '');
+  return (process.env.CLOUDIQ_BASE_URL ?? '').replace(/\/+$/, '');
 }
 
 /** True when the server is configured to talk to CloudIQ at all. Lets the
- *  route return a clear 503 instead of a confusing 401 from upstream. */
+ *  route return a clear 503 instead of a confusing 401 from upstream, or — now
+ *  that the endpoint has no in-source fallback — a fetch to a relative path. */
 export function isCloudIQConfigured(): boolean {
-  return Boolean(process.env.CLOUDIQ_API_KEY);
+  return Boolean(process.env.CLOUDIQ_API_KEY && baseUrl());
 }
 
 export async function createChatCompletion(

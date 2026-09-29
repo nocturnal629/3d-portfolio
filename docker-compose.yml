@@ -12,7 +12,7 @@ services:
       # Read from your shell or a sibling .env file; never baked into the
       # image (see .dockerignore).
       CLOUDIQ_API_KEY: ${CLOUDIQ_API_KEY:-}
-      CLOUDIQ_BASE_URL: ${CLOUDIQ_BASE_URL:-https://REDACTED-GATEWAY-HOST}
+      CLOUDIQ_BASE_URL: ${CLOUDIQ_BASE_URL:-}
       CLOUDIQ_MODEL: ${CLOUDIQ_MODEL:-}
       BLOB_READ_WRITE_TOKEN: ${BLOB_READ_WRITE_TOKEN:-}
       HONEYPOT_AWS_ACCESS_KEY_ID: ${HONEYPOT_AWS_ACCESS_KEY_ID:-}
