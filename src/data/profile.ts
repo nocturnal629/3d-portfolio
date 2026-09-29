@@ -7,7 +7,12 @@ export const profile = {
   role: 'Full Stack LLM Developer',
   location: 'Metropolitan Manila, Philippines',
   callsign: 'ALD-629',
-  site: 'https://www.aldrian-a.dev',
+  // Canonical origin: drives `metadataBase`, so Open Graph image URLs, the
+  // sitemap and robots.txt all resolve against it. It must be a host that
+  // actually serves the site, or link previews break and crawlers are pointed
+  // somewhere that does not answer. Vercel's other aliases for this project
+  // sit behind Deployment Protection; this one is the public one.
+  site: 'https://3d-portfolio-nine-taupe.vercel.app',
   socials: {
     github: 'https://github.com/nocturnal629',
     githubRepos: 'https://github.com/nocturnal629?tab=repositories',
