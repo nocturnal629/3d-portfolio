@@ -6,11 +6,9 @@ import { PerformanceMonitor, Stars } from '@react-three/drei';
 import { Bloom, EffectComposer, Vignette } from '@react-three/postprocessing';
 import CameraRig from './CameraRig';
 import Nebula from './Nebula';
-import PerfProbe from './PerfProbe';
 import Planet from './Planet';
 import Star from './Star';
 import { sections } from '@/data/sections';
-import { perfEnabled } from '@/lib/perf-probe';
 import { useCosmos } from '@/lib/store';
 
 interface CosmosSceneProps {
@@ -172,9 +170,6 @@ export default function CosmosScene({ quality }: CosmosSceneProps) {
           onStrain={dropPostFx}
         />
       )}
-
-      {/* Temporary, `?perf=1` only. */}
-      {perfEnabled() && <PerfProbe postFx={postFx} />}
     </Canvas>
   );
 }
