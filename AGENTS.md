@@ -83,9 +83,8 @@ whole react-icons tree into the serverless bundle.
 
 ### NOVA / CloudIQ
 
-`src/app/api/chat/route.ts` is a server-side proxy to CloudIQ (a self-hosted
-Flask gateway in front of Accenture's ModelIQ). The API key never reaches the
-browser.
+`src/app/api/chat/route.ts` is a server-side proxy to CloudIQ, a self-hosted AI
+gateway. The API key never reaches the browser.
 
 - `src/lib/knowledge.ts` builds the system prompt by rendering every content
   file into a plain-text dossier. Adding a content file means adding it here
@@ -132,11 +131,3 @@ Two panel classes, and the difference matters:
 
 The site is dark-only by design. No fonts are fetched at build or runtime —
 the stacks are system fonts, so a Docker build needs no network for assets.
-
-## Environment variables
-
-Copy `.env.local.example` to `.env.local`. `CLOUDIQ_API_KEY` is required for
-NOVA; without it `/api/chat` returns a clean 503 and the rest of the site works
-normally. `BLOB_READ_WRITE_TOKEN` is required for idea submissions and honeypot
-logging to persist; without it valid submissions 500 at the write step, which
-the API tests account for.

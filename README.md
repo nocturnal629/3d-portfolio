@@ -37,7 +37,7 @@ rebuilt around a 3D scene.
 | 3D             | three.js · @react-three/fiber · drei · postprocessing  |
 | State          | Zustand                                                |
 | Styling        | Tailwind CSS v4 (CSS-first config, no JS config file)  |
-| AI gateway     | CloudIQ → ModelIQ                                      |
+| AI gateway     | CloudIQ (self-hosted)                                  |
 | Storage        | Vercel Blob                                            |
 | API tests      | FastAPI + pytest                                       |
 
@@ -65,20 +65,6 @@ npm run start      # serve the production build
 npm run lint       # ESLint
 npm run typecheck  # tsc --noEmit
 ```
-
-## Environment variables
-
-| Variable                         | Required for            | Notes                                                             |
-| -------------------------------- | ----------------------- | ----------------------------------------------------------------- |
-| `CLOUDIQ_API_KEY`                | NOVA                    | From the CloudIQ admin dashboard. Server-side only                |
-| `CLOUDIQ_BASE_URL`               | —                       | Defaults to the deployed CloudIQ instance                          |
-| `CLOUDIQ_MODEL`                  | —                       | Defaults to `cloudiq-smart`, CloudIQ's routing model              |
-| `BLOB_READ_WRITE_TOKEN`          | Ideas + honeypot log    | Tick "Development" on the Blob store to use it locally            |
-| `HONEYPOT_AWS_ACCESS_KEY_ID`     | —                       | Optional canary token from canarytokens.org                        |
-| `HONEYPOT_AWS_SECRET_ACCESS_KEY` | —                       | Optional canary token from canarytokens.org                        |
-
-`CLOUDIQ_API_KEY` is read only inside a route handler and is never sent to the
-browser. Do not prefix it with `NEXT_PUBLIC_`.
 
 ## Deployment
 
@@ -137,8 +123,8 @@ there are no binary art assets in the repo.
 
 ## NOVA
 
-`src/app/api/chat/route.ts` proxies to CloudIQ, a self-hosted Flask gateway in
-front of Accenture's ModelIQ. The system prompt is assembled per request by
+`src/app/api/chat/route.ts` proxies to CloudIQ, a self-hosted AI gateway. The
+system prompt is assembled per request by
 `src/lib/knowledge.ts`, which renders every content file into a plain-text
 dossier — so NOVA answers from the same data the page renders, and editing
 `src/data/` updates both at once.

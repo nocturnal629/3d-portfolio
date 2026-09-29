@@ -26,8 +26,8 @@ from app.schemas import (
 
 NEXT_API_BASE_URL = os.environ.get("NEXT_API_BASE_URL", "http://localhost:3002")
 
-# The chat route calls CloudIQ, which in turn calls ModelIQ with a 60s budget
-# and may be cold-starting on Render's free tier.
+# The chat route calls CloudIQ, which has its own 60s upstream budget and may
+# be cold-starting on a free tier instance.
 CHAT_TIMEOUT_SECONDS = 90
 
 app = FastAPI(

@@ -2,16 +2,15 @@ import 'server-only';
 
 import type { ChatMessage } from '@/types';
 
-/** CloudIQ is a self-hosted Flask gateway in front of Accenture's ModelIQ.
- *  It speaks an OpenAI-compatible `/v1/chat/completions` shape, authenticates
- *  with an `X-API-Key` header instead of a bearer token, and adds its own
- *  `served_model` field reporting which upstream model actually answered
- *  after its internal fallback chain. See the CloudIQ project's app.py. */
+/** CloudIQ is a self-hosted AI gateway. It speaks an OpenAI-compatible
+ *  `/v1/chat/completions` shape, authenticates with an `X-API-Key` header
+ *  instead of a bearer token, and adds its own `served_model` field reporting
+ *  which upstream model actually answered after its internal fallback chain. */
 const DEFAULT_BASE_URL = 'https://REDACTED-GATEWAY-HOST';
 
-/** CloudIQ's own default. It is a ModelIQ-native router that scores prompt
- *  complexity and dispatches to a tier, and CloudIQ walks its remaining model
- *  list if the router itself fails — so a single named model here is enough. */
+/** CloudIQ's own default: a router that scores prompt complexity and
+ *  dispatches to a tier, with the gateway walking its remaining model list if
+ *  the router itself fails — so a single named model here is enough. */
 const DEFAULT_MODEL = 'cloudiq-smart';
 
 /** CloudIQ's upstream call has a 60s timeout and the free Render instance
