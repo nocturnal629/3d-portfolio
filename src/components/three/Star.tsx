@@ -39,7 +39,7 @@ export default function Star({ body }: StarProps) {
   return (
     <group>
       <mesh ref={core}>
-        <sphereGeometry args={[body.radius, 64, 64]} />
+        <sphereGeometry args={[body.radius, 48, 48]} />
         <meshBasicMaterial color={body.color} toneMapped={false} />
       </mesh>
 

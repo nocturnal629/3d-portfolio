@@ -13,7 +13,7 @@ interface OrbitPathProps {
  *  than a line so it keeps a consistent width at any distance — `linewidth`
  *  is ignored by WebGL on most platforms. */
 export default function OrbitPath({ radius, tilt, color }: OrbitPathProps) {
-  const args = useMemo(() => [radius - 0.035, radius + 0.035, 192] as const, [radius]);
+  const args = useMemo(() => [radius - 0.035, radius + 0.035, 96] as const, [radius]);
 
   return (
     <mesh rotation={[-Math.PI / 2 + tilt, 0, 0]}>

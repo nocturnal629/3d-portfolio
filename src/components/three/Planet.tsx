@@ -45,7 +45,7 @@ export default function Planet({ body, index }: PlanetProps) {
 
       <group ref={group}>
         <mesh ref={surface}>
-          <sphereGeometry args={[body.radius, 64, 64]} />
+          <sphereGeometry args={[body.radius, 32, 32]} />
           <meshStandardMaterial
             color={body.color}
             roughness={0.72}
@@ -61,7 +61,7 @@ export default function Planet({ body, index }: PlanetProps) {
 
         {body.ring && (
           <mesh rotation={[Math.PI / 2 + body.ring.tilt, 0, 0]}>
-            <ringGeometry args={[body.ring.inner, body.ring.outer, 128]} />
+            <ringGeometry args={[body.ring.inner, body.ring.outer, 64]} />
             <meshBasicMaterial
               color={body.ring.color}
               transparent

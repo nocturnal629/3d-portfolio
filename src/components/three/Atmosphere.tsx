@@ -60,7 +60,7 @@ export default function Atmosphere({
 
   return (
     <mesh scale={scale}>
-      <sphereGeometry args={[radius, 48, 48]} />
+      <sphereGeometry args={[radius, 32, 32]} />
       <shaderMaterial
         vertexShader={VERTEX}
         fragmentShader={FRAGMENT}

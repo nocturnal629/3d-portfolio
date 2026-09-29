@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { Canvas } from '@react-three/fiber';
-import { Stars } from '@react-three/drei';
+import { Canvas, useThree } from '@react-three/fiber';
+import { PerformanceMonitor, Stars } from '@react-three/drei';
 import { Bloom, EffectComposer, Vignette } from '@react-three/postprocessing';
 import CameraRig from './CameraRig';
 import Nebula from './Nebula';
@@ -14,6 +14,27 @@ import { useCosmos } from '@/lib/store';
 interface CosmosSceneProps {
   /** Scales down star count and disables post-processing on weaker devices. */
   quality: 'high' | 'low';
+}
+
+/** Upper bound on the resolution the scene is ever rendered at. The scene is
+ *  fill-rate bound, not geometry bound, so every 0.25 here costs real frames. */
+const MAX_DPR = { high: 1.5, low: 1 } as const;
+
+/** Rescales the render resolution to whatever the GPU actually sustains.
+ *
+ *  Device class is guessed from CPU core count (see lib/device.ts), which says
+ *  nothing about the GPU — an 8-core laptop on integrated graphics reports as
+ *  `high` and then struggles with the bloom pass. Measuring real frame times
+ *  and backing off is the only heuristic that holds across both. */
+function AdaptiveResolution({ max }: { max: number }) {
+  const setDpr = useThree((state) => state.setDpr);
+
+  return (
+    <PerformanceMonitor
+      // factor is 0 when frame times are bad and 1 when there is headroom.
+      onChange={({ factor }) => setDpr(1 + factor * (max - 1))}
+    />
+  );
 }
 
 export default function CosmosScene({ quality }: CosmosSceneProps) {
@@ -39,9 +60,14 @@ export default function CosmosScene({ quality }: CosmosSceneProps) {
   return (
     <Canvas
       // Capped rather than uncapped: at native DPR on a 3x phone screen the
-      // bloom pass alone costs more than the rest of the frame.
-      dpr={quality === 'high' ? [1, 1.75] : [1, 1]}
-      gl={{ antialias: quality === 'high', powerPreference: 'high-performance' }}
+      // bloom pass alone costs more than the rest of the frame. AdaptiveResolution
+      // moves the live value around inside this range.
+      dpr={[1, MAX_DPR[quality]]}
+      // Never MSAA the default framebuffer. At high quality the composer owns
+      // antialiasing on its own render target, so this would be a second,
+      // discarded multisample resolve; at low quality it is not worth the
+      // bandwidth on the devices that get there.
+      gl={{ antialias: false, powerPreference: 'high-performance' }}
       camera={{ position: [0, 4, 24], fov: 52, near: 0.1, far: 500 }}
       onCreated={() => setSceneReady(true)}
     >
@@ -69,7 +95,10 @@ export default function CosmosScene({ quality }: CosmosSceneProps) {
       <CameraRig pointer={pointer} />
 
       {quality === 'high' && (
-        <EffectComposer>
+        // multisampling defaults to 8 in this library, which on a fill-rate
+        // bound scene is the single most expensive setting in the whole app.
+        // 2 keeps edges acceptable at a quarter of the sample cost.
+        <EffectComposer multisampling={2}>
           <Bloom
             intensity={1.15}
             // Only the star, atmospheres and additive rings clear this, so
@@ -77,10 +106,15 @@ export default function CosmosScene({ quality }: CosmosSceneProps) {
             luminanceThreshold={0.28}
             luminanceSmoothing={0.35}
             mipmapBlur
+            // The pass output is a wide blur, so halving its resolution is
+            // free visually and quarters the fragments it touches.
+            resolutionScale={0.5}
           />
           <Vignette offset={0.28} darkness={0.62} />
         </EffectComposer>
       )}
+
+      {quality === 'high' && <AdaptiveResolution max={MAX_DPR.high} />}
     </Canvas>
   );
 }
