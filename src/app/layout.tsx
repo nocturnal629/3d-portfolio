@@ -4,6 +4,7 @@ import './globals.css';
 import NovaConsole from '@/components/features/NovaConsole';
 import ScrollDriver from '@/components/features/ScrollDriver';
 import NavRail from '@/components/hud/NavRail';
+import PerfOverlay from '@/components/hud/PerfOverlay';
 import QualityToggle from '@/components/hud/QualityToggle';
 import Readout from '@/components/hud/Readout';
 import ScrollProgress from '@/components/hud/ScrollProgress';
@@ -66,6 +67,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <main className="relative z-10">{children}</main>
 
         <NovaConsole />
+        {/* Temporary diagnostic, renders nothing without `?perf=1`. */}
+        <PerfOverlay />
         <Analytics />
       </body>
     </html>
