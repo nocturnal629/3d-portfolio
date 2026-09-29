@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
-import { PerformanceMonitor, Preload, Stars } from '@react-three/drei';
+import { PerformanceMonitor, Stars } from '@react-three/drei';
 import { Bloom, EffectComposer, Vignette } from '@react-three/postprocessing';
 import CameraRig from './CameraRig';
 import Nebula from './Nebula';
@@ -22,33 +22,41 @@ interface CosmosSceneProps {
  *  fill-rate bound, not geometry bound, so every 0.25 here costs real frames. */
 const MAX_DPR = { high: 1.5, low: 1 } as const;
 
-/** How long to leave the scene alone before believing anything its frame times
- *  say. Startup is genuinely janky — the chunk has to parse, every material
- *  compiles its shader on first use, and the canvas textures upload — and none
- *  of that reflects the framerate the machine can actually hold. Measuring
- *  through it would permanently strip post-processing off a capable GPU. */
-const WARMUP_MS = 12_000;
+/** Long enough to skip the first few frames, which are always unrepresentative,
+ *  and no longer. An earlier version waited twelve seconds here on the theory
+ *  that startup was dominated by shader compilation; measurement put the
+ *  compile at 7ms, so the wait was only ever delaying the moment the scene
+ *  became smooth. */
+const SETTLE_MS = 2_000;
 
-/** Rescales the render resolution to whatever the GPU actually sustains, and
- *  reports when lowering it further has stopped helping.
+/** Scales render resolution to what the GPU sustains, and reports the two
+ *  extremes so the caller can decide about post-processing.
  *
  *  Device class is guessed from CPU core count (see lib/device.ts), which says
- *  nothing about the GPU — an 8-core desktop with weak or software-rendered
- *  graphics reports as `high` and then struggles with the bloom pass.
- *  Measuring real frame times is the only heuristic that holds across both. */
-function AdaptiveResolution({ max, onExhausted }: { max: number; onExhausted: () => void }) {
+ *  nothing about the GPU — an 8-core desktop with weak graphics reports as
+ *  `high`. Measuring real frame times is the only heuristic that holds. */
+function AdaptiveQuality({
+  max,
+  onHeadroom,
+  onStrain,
+}: {
+  max: number;
+  onHeadroom: () => void;
+  onStrain: () => void;
+}) {
   const setDpr = useThree((state) => state.setDpr);
 
   return (
     <PerformanceMonitor
-      // factor is 0 when frame times are bad and 1 when there is headroom.
+      // factor is 0 when frame times are bad and 1 when there is headroom. It
+      // starts mid-range and steps, so the extremes mean "sustained", not "one
+      // good frame".
       onChange={({ factor }) => {
         setDpr(1 + factor * (max - 1));
-        // Already down to 1x and still not keeping up: what is left to cut is
-        // the post-processing stack, not the pixel count.
-        if (factor === 0) onExhausted();
+        if (factor === 1) onHeadroom();
+        if (factor === 0) onStrain();
       }}
-      onFallback={onExhausted}
+      onFallback={onStrain}
     />
   );
 }
@@ -57,22 +65,30 @@ export default function CosmosScene({ quality }: CosmosSceneProps) {
   const pointer = useRef({ x: 0, y: 0 });
   const setSceneReady = useCosmos((state) => state.setSceneReady);
 
-  // Post-processing is the single most expensive thing in the scene, and it is
-  // the only real difference between this path and the `low` one that phones
-  // get — which run the scene smoothly. So it is what gets dropped when the
-  // resolution climbdown is not enough to hold a framerate.
-  const [postFx, setPostFx] = useState(quality === 'high');
+  // Off until the GPU has earned it. Measured on a desktop that classes as
+  // `high`: 15fps with this stack on, 55fps with it off, on a scene that is
+  // only 29 draw calls and 22k triangles. Starting it on meant every visitor
+  // whose GPU cannot afford it paid full price until the monitor gave up,
+  // which is exactly the stutter this was supposed to prevent.
+  const [postFx, setPostFx] = useState(false);
 
-  // Deliberately one-way. Re-enabling on recovery would oscillate, because
-  // the recovery is caused by the thing being off.
-  const dropPostFx = useCallback(() => setPostFx(false), []);
+  // Once dropped it stays dropped. Performance recovers *because* the pass is
+  // off, so an unlatched rule would read that recovery as headroom and switch
+  // it straight back on.
+  const banned = useRef(false);
 
-  // Gates the monitor rather than the callback: once its factor bottoms out it
-  // stays there and stops emitting, so a callback that ignored early reports
-  // would never hear a second one and would never degrade a slow machine.
-  const [warm, setWarm] = useState(false);
+  const tryPostFx = useCallback(() => {
+    if (!banned.current) setPostFx(true);
+  }, []);
+
+  const dropPostFx = useCallback(() => {
+    banned.current = true;
+    setPostFx(false);
+  }, []);
+
+  const [settled, setSettled] = useState(false);
   useEffect(() => {
-    const id = setTimeout(() => setWarm(true), WARMUP_MS);
+    const id = setTimeout(() => setSettled(true), SETTLE_MS);
     return () => clearTimeout(id);
   }, []);
 
@@ -149,19 +165,16 @@ export default function CosmosScene({ quality }: CosmosSceneProps) {
         </EffectComposer>
       )}
 
-      {quality === 'high' && warm && (
-        <AdaptiveResolution max={MAX_DPR.high} onExhausted={dropPostFx} />
+      {quality === 'high' && settled && (
+        <AdaptiveQuality
+          max={MAX_DPR.high}
+          onHeadroom={tryPostFx}
+          onStrain={dropPostFx}
+        />
       )}
 
-      {/* Temporary, `?perf=1` only. Ordered before Preload so it is the one
-          that actually pays for the compile and can time it. */}
+      {/* Temporary, `?perf=1` only. */}
       {perfEnabled() && <PerfProbe postFx={postFx} />}
-
-      {/* Compiles every material up front instead of letting each one stall a
-          frame the first time it comes into view. The cost does not go away,
-          but it lands in one block while the canvas is still faded out rather
-          than as stutter once the visitor is already scrolling. */}
-      <Preload all />
     </Canvas>
   );
 }

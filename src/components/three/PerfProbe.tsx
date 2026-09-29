@@ -7,10 +7,9 @@ import { perfStats } from '@/lib/perf-probe';
 /** Samples renderer counters and times shader compilation. Temporary — see
  *  lib/perf-probe.ts.
  *
- *  Mounted immediately before drei's `<Preload all />` so this compile is the
- *  one that does the real work and Preload's is a cache hit. That way the
- *  number describes the configuration that actually ships, rather than one
- *  altered to make it measurable. */
+ *  Note when reading `draws` and `tris`: with post-processing on these report
+ *  the composer's final pass, not the scene, so they only mean anything in a
+ *  `postFX off` sample. */
 export default function PerfProbe({ postFx }: { postFx: boolean }) {
   const gl = useThree((state) => state.gl);
   const scene = useThree((state) => state.scene);
