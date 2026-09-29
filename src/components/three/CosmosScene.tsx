@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
-import { PerformanceMonitor, Stars } from '@react-three/drei';
+import { PerformanceMonitor, Preload, Stars } from '@react-three/drei';
 import { Bloom, EffectComposer, Vignette } from '@react-three/postprocessing';
 import CameraRig from './CameraRig';
 import Nebula from './Nebula';
@@ -19,6 +19,13 @@ interface CosmosSceneProps {
 /** Upper bound on the resolution the scene is ever rendered at. The scene is
  *  fill-rate bound, not geometry bound, so every 0.25 here costs real frames. */
 const MAX_DPR = { high: 1.5, low: 1 } as const;
+
+/** How long to leave the scene alone before believing anything its frame times
+ *  say. Startup is genuinely janky — the chunk has to parse, every material
+ *  compiles its shader on first use, and the canvas textures upload — and none
+ *  of that reflects the framerate the machine can actually hold. Measuring
+ *  through it would permanently strip post-processing off a capable GPU. */
+const WARMUP_MS = 12_000;
 
 /** Rescales the render resolution to whatever the GPU actually sustains, and
  *  reports when lowering it further has stopped helping.
@@ -57,6 +64,15 @@ export default function CosmosScene({ quality }: CosmosSceneProps) {
   // Deliberately one-way. Re-enabling on recovery would oscillate, because
   // the recovery is caused by the thing being off.
   const dropPostFx = useCallback(() => setPostFx(false), []);
+
+  // Gates the monitor rather than the callback: once its factor bottoms out it
+  // stays there and stops emitting, so a callback that ignored early reports
+  // would never hear a second one and would never degrade a slow machine.
+  const [warm, setWarm] = useState(false);
+  useEffect(() => {
+    const id = setTimeout(() => setWarm(true), WARMUP_MS);
+    return () => clearTimeout(id);
+  }, []);
 
   useEffect(() => {
     // Tracked on the window rather than through r3f's pointer events because
@@ -131,9 +147,15 @@ export default function CosmosScene({ quality }: CosmosSceneProps) {
         </EffectComposer>
       )}
 
-      {quality === 'high' && (
+      {quality === 'high' && warm && (
         <AdaptiveResolution max={MAX_DPR.high} onExhausted={dropPostFx} />
       )}
+
+      {/* Compiles every material up front instead of letting each one stall a
+          frame the first time it comes into view. The cost does not go away,
+          but it lands in one block while the canvas is still faded out rather
+          than as stutter once the visitor is already scrolling. */}
+      <Preload all />
     </Canvas>
   );
 }
