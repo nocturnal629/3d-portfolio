@@ -2,6 +2,13 @@ import { Certification } from '@/types';
 
 export const certifications: Certification[] = [
   {
+    name: 'AWS Certified Cloud Practitioner',
+    issuer: 'Amazon Web Services',
+    logo: '/logos/aws-certified-cloud-practitioner.png',
+    date: 'Issued Sep 2026 · Expires Sep 2029',
+    link: 'https://www.credly.com/badges/dfc44c96-a247-4355-98a6-d4403f12863d/public_url',
+  },
+  {
     name: 'AWS Certified AI Practitioner',
     issuer: 'Amazon Web Services',
     logo: '/logos/aws-certified-ai-practitioner.png',
