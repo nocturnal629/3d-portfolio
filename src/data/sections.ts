@@ -1,4 +1,3 @@
-import { BsRocketTakeoff, BsBriefcase, BsPatchCheck, BsPersonBadge, BsBroadcast, BsBrightnessHigh } from 'react-icons/bs';
 import type { Section } from '@/types';
 
 /** Order matters: this array defines both the HUD nav order and the order the
@@ -10,7 +9,6 @@ export const sections: Section[] = [
     label: 'Home',
     bodyName: 'Sol \u2014 ALD-629',
     tagline: 'Primary star. Everything here orbits one developer.',
-    icon: BsBrightnessHigh,
     body: {
       radius: 2.6,
       orbitRadius: 0,
@@ -27,7 +25,6 @@ export const sections: Section[] = [
     label: 'Projects',
     bodyName: 'Kepler',
     tagline: 'Worlds already built and shipped.',
-    icon: BsRocketTakeoff,
     body: {
       radius: 1.5,
       orbitRadius: 10,
@@ -45,7 +42,6 @@ export const sections: Section[] = [
     label: 'Experience',
     bodyName: 'Chronos',
     tagline: 'A timeline in orbit \u2014 where the hours went.',
-    icon: BsBriefcase,
     body: {
       radius: 1.9,
       orbitRadius: 16,
@@ -63,7 +59,6 @@ export const sections: Section[] = [
     label: 'Certifications',
     bodyName: 'Vega Cluster',
     tagline: 'Fixed points \u2014 verified and independently confirmed.',
-    icon: BsPatchCheck,
     body: {
       radius: 1.25,
       orbitRadius: 22,
@@ -84,7 +79,6 @@ export const sections: Section[] = [
     label: 'About',
     bodyName: 'Terra Nova',
     tagline: 'The home world. Who is actually behind all this.',
-    icon: BsPersonBadge,
     body: {
       radius: 2.1,
       orbitRadius: 29,
@@ -102,7 +96,6 @@ export const sections: Section[] = [
     label: 'Signal',
     bodyName: 'Relay Station',
     tagline: 'Deep-space comms. Transmit an idea.',
-    icon: BsBroadcast,
     body: {
       radius: 1.0,
       orbitRadius: 36,

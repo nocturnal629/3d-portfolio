@@ -5,7 +5,7 @@ import { useFrame } from '@react-three/fiber';
 import { Vector3 } from 'three';
 import { sections } from '@/data/sections';
 import { bodyPosition, cameraStop, clamp, smoothstep } from '@/lib/orbit';
-import { getProgress } from '@/lib/store';
+import { getGameActive, getProgress } from '@/lib/store';
 
 const target = new Vector3();
 const desiredPosition = new Vector3();
@@ -52,6 +52,11 @@ export default function CameraRig({ pointer }: CameraRigProps) {
   const initialised = useRef(false);
 
   useFrame((state, delta) => {
+    // Freeze the scroll-driven camera while the arcade minigame overlay is up,
+    // so the scene holds still behind it; when the game exits the smoothing
+    // below eases the camera back to the current scroll waypoint.
+    if (getGameActive()) return;
+
     const time = state.clock.elapsedTime;
     const progress = getProgress();
 

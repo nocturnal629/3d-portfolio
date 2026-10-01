@@ -53,19 +53,30 @@ function emit() {
   listeners.forEach((listener) => listener());
 }
 
-export function subscribeDevice(listener: () => void): () => void {
-  listeners.add(listener);
+/** Single shared media-query listener for the whole module. Every subscriber
+ *  used to register its own `matchMedia` listener, so a preference change ran
+ *  `compute()`/`emit()` once per subscriber; attaching one listener lazily on
+ *  the first subscription — and tearing it down when the last leaves — does
+ *  that work exactly once. */
+let motionQuery: MediaQueryList | null = null;
+const onMotionChange = () => {
+  snapshot = compute();
+  emit();
+};
 
-  const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
-  const onChange = () => {
-    snapshot = compute();
-    emit();
-  };
-  motion.addEventListener('change', onChange);
+export function subscribeDevice(listener: () => void): () => void {
+  if (listeners.size === 0) {
+    motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    motionQuery.addEventListener('change', onMotionChange);
+  }
+  listeners.add(listener);
 
   return () => {
     listeners.delete(listener);
-    motion.removeEventListener('change', onChange);
+    if (listeners.size === 0 && motionQuery) {
+      motionQuery.removeEventListener('change', onMotionChange);
+      motionQuery = null;
+    }
   };
 }
 

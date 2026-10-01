@@ -21,6 +21,7 @@ export default function NovaConsole() {
 
   const log = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLTextAreaElement>(null);
+  const dialog = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (open) input.current?.focus();
@@ -112,9 +113,31 @@ export default function NovaConsole() {
 
       {open && (
         <div
+          ref={dialog}
           id="nova-console"
           role="dialog"
+          aria-modal="true"
           aria-label="NOVA assistant"
+          onKeyDown={(event) => {
+            // Basic focus trap: keep Tab/Shift+Tab cycling within the dialog
+            // while it is open. Escape-to-close and initial focus are handled
+            // by the effects above.
+            if (event.key !== 'Tab') return;
+            const focusable = dialog.current?.querySelectorAll<HTMLElement>(
+              'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])',
+            );
+            if (!focusable || focusable.length === 0) return;
+            const first = focusable[0];
+            const last = focusable[focusable.length - 1];
+            const active = document.activeElement;
+            if (event.shiftKey && active === first) {
+              event.preventDefault();
+              last.focus();
+            } else if (!event.shiftKey && active === last) {
+              event.preventDefault();
+              first.focus();
+            }
+          }}
           className="panel-solid animate-cosmos-rise fixed bottom-20 right-3 z-40 flex h-[min(34rem,72vh)] w-[min(26rem,calc(100vw-1.5rem))] flex-col overflow-hidden sm:bottom-24 sm:right-6"
         >
           <header className="flex items-center justify-between border-b border-white/10 px-4 py-3">
@@ -151,7 +174,11 @@ export default function NovaConsole() {
             ))}
           </div>
 
-          <div ref={log} className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
+          <div
+            ref={log}
+            aria-live="polite"
+            className="flex-1 space-y-3 overflow-y-auto px-4 py-4"
+          >
             <Bubble role="assistant">{GREETING[mode]}</Bubble>
 
             {messages.map((message, i) => (

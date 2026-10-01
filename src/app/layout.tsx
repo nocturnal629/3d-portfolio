@@ -1,8 +1,10 @@
 import type { Metadata, Viewport } from 'next';
 import { Analytics } from '@vercel/analytics/next';
 import './globals.css';
+import ConsoleEasterEgg from '@/components/features/ConsoleEasterEgg';
 import NovaConsole from '@/components/features/NovaConsole';
 import ScrollDriver from '@/components/features/ScrollDriver';
+import SpaceInvaders from '@/components/features/SpaceInvaders';
 import NavRail from '@/components/hud/NavRail';
 import QualityToggle from '@/components/hud/QualityToggle';
 import Readout from '@/components/hud/Readout';
@@ -38,6 +40,9 @@ export const metadata: Metadata = {
     images: [{ url: '/favicon.png', width: 1200, height: 630, alt: title, type: 'image/png' }],
   },
   twitter: { card: 'summary_large_image', title, description },
+  // A little something for the view-source crawler: one of the arcade Hangar's
+  // ship-skin unlock codes, hidden in a custom meta tag. Harmless flavour.
+  other: { 'nova:hangar-key': 'Solar Hull access code — SOLFLARE' },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -65,6 +70,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Sits above the fixed backdrop and owns all pointer interaction. */}
         <main className="relative z-10">{children}</main>
 
+        <SpaceInvaders />
+
+        <ConsoleEasterEgg />
         <NovaConsole />
         <Analytics />
       </body>

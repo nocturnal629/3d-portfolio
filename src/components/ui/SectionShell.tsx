@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { sectionById } from '@/data/sections';
+import { sectionIcons } from '@/data/section-icons';
 import type { SectionId } from '@/types';
 
 interface SectionShellProps {
@@ -17,7 +18,7 @@ interface SectionShellProps {
  *  must match the section id in `src/data/sections.ts`. */
 export default function SectionShell({ id, title, children, width = 'wide' }: SectionShellProps) {
   const section = sectionById[id];
-  const Icon = section.icon;
+  const Icon = sectionIcons[id];
 
   return (
     <section

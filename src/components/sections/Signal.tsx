@@ -1,4 +1,5 @@
 import { FaGithub, FaLinkedin } from 'react-icons/fa';
+import GameLaunchButton from '@/components/features/GameLaunchButton';
 import SignalTransmit from '@/components/features/SignalTransmit';
 import SectionShell from '@/components/ui/SectionShell';
 import { profile } from '@/data/profile';
@@ -16,7 +17,12 @@ export default function Signal() {
       </div>
 
       <div className="mt-8 flex flex-wrap items-center gap-3 border-t border-white/10 pt-6">
-        <span className="hud-label">Direct channels</span>
+        <span
+          className="hud-label"
+          title="Relay whisper: the Hangar answers to the code PULSAR"
+        >
+          Direct channels
+        </span>
         <a
           href={profile.socials.github}
           target="_blank"
@@ -36,6 +42,8 @@ export default function Signal() {
           LinkedIn
         </a>
       </div>
+
+      <GameLaunchButton />
     </SectionShell>
   );
 }

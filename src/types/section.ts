@@ -1,5 +1,3 @@
-import type { IconType } from 'react-icons';
-
 export type SectionId = 'home' | 'projects' | 'experience' | 'certifications' | 'about' | 'signal';
 
 /** Visual + orbital parameters for the celestial body that represents a section. */
@@ -34,6 +32,5 @@ export interface Section {
   bodyName: string;
   /** One-line flavour text shown in the HUD readout. */
   tagline: string;
-  icon: IconType;
   body: CelestialBody;
 }

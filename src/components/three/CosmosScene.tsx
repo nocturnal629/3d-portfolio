@@ -27,6 +27,14 @@ const MAX_DPR = { high: 1.5, low: 1 } as const;
  *  became smooth. */
 const SETTLE_MS = 2_000;
 
+/** Full-DPR `onChange` cycles required in a row before post-processing is
+ *  switched on. A single `factor === 1` reading is measured *without* bloom's
+ *  cost, so acting on it can enable the pass right before it tanks the frame
+ *  rate — which trips the drop-and-ban path and permanently loses bloom on a
+ *  GPU that could have sustained it at a lower resolution. Requiring a streak
+ *  filters out those transient good readings. */
+const HEADROOM_STREAK = 3;
+
 /** Scales render resolution to what the GPU sustains, and reports the two
  *  extremes so the caller can decide about post-processing.
  *
@@ -43,6 +51,9 @@ function AdaptiveQuality({
   onStrain: () => void;
 }) {
   const setDpr = useThree((state) => state.setDpr);
+  // Consecutive full-DPR readings. Reset the moment headroom slips, so only a
+  // sustained run clears HEADROOM_STREAK.
+  const headroomStreak = useRef(0);
 
   return (
     <PerformanceMonitor
@@ -51,7 +62,14 @@ function AdaptiveQuality({
       // good frame".
       onChange={({ factor }) => {
         setDpr(1 + factor * (max - 1));
-        if (factor === 1) onHeadroom();
+        if (factor === 1) {
+          headroomStreak.current += 1;
+          if (headroomStreak.current >= HEADROOM_STREAK) onHeadroom();
+        } else {
+          headroomStreak.current = 0;
+        }
+        // Drop immediately on regression; recovery has to be earned back over
+        // the full streak above.
         if (factor === 0) onStrain();
       }}
       onFallback={onStrain}

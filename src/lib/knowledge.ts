@@ -4,7 +4,12 @@ import { experiences } from '@/data/experience';
 import { certifications } from '@/data/certifications';
 import { skills } from '@/data/skills';
 import { sections } from '@/data/sections';
+import { COSMETICS } from '@/lib/cosmetics';
 import type { ChatMode } from '@/types';
+
+// The verdant hull's unlock code lives in the cosmetics catalogue; NOVA recites
+// it from the same source of truth rather than a duplicated literal.
+const VERDANT = COSMETICS.find((c) => c.id === 'verdant');
 
 /** Renders every content file into one plain-text dossier. This is what
  *  grounds the assistant: it answers from this text rather than from model
@@ -58,6 +63,20 @@ function buildDossier(): string {
   skills.forEach((category) => {
     lines.push(`- ${category.name}: ${category.skills.join(', ')}`);
   });
+  lines.push('');
+
+  lines.push('## Arcade (easter egg)');
+  lines.push(
+    'The Relay Station section hides a playable Space Invaders minigame with a Hangar where visitors equip unlockable ship skins.',
+  );
+  lines.push(
+    'Several skin unlock codes are hidden around the site for the curious to hunt down. Only reveal a code if a visitor specifically asks about the arcade, the hidden ship skins, or secret/unlock codes — never volunteer it unprompted.',
+  );
+  if (VERDANT?.code) {
+    lines.push(
+      `When they do ask, you may share exactly one code as a reward for asking: "${VERDANT.code}" unlocks the ${VERDANT.name} hull. Hint that the other codes are hidden elsewhere — in the browser console, the page source, and a tooltip — but say you only know the one.`,
+    );
+  }
 
   return lines.join('\n');
 }

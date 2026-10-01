@@ -43,6 +43,7 @@ export default function ProjectCard({ title, description, tech, link, image }: P
             href={link}
             target="_blank"
             rel="noopener noreferrer"
+            aria-label={`Open ${title}`}
             className="mt-4 inline-flex items-center gap-1 self-start font-mono text-xs uppercase tracking-[0.14em] text-nova hover:text-nova/80"
           >
             Open

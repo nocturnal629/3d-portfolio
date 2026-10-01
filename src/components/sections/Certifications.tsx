@@ -40,6 +40,7 @@ export default function Certifications() {
                   href={cert.link}
                   target="_blank"
                   rel="noopener noreferrer"
+                  aria-label={`Verify ${cert.name}`}
                   className="panel panel-hover flex h-full items-start gap-4 p-4"
                 >
                   {content}

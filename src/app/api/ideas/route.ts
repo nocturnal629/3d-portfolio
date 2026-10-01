@@ -1,5 +1,6 @@
 import { put } from '@vercel/blob';
 import { NextResponse } from 'next/server';
+import { checkRateLimit, clientIp } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 
@@ -7,8 +8,22 @@ const MAX_NAME_LENGTH = 60;
 const MAX_TITLE_LENGTH = 120;
 const MAX_DESCRIPTION_LENGTH = 2000;
 
+// Per-IP budget. Idea submissions hit Vercel Blob rather than CloudIQ, but the
+// same speed bump keeps one visitor from flooding the store. See
+// lib/rate-limit.ts for why this is per-instance and best-effort.
+const PER_IP_LIMIT = 6;
+const PER_IP_WINDOW_MS = 60_000;
+
 export async function POST(request: Request) {
-  let body: Record<string, unknown>;
+  const limit = checkRateLimit(`ideas:${clientIp(request)}`, PER_IP_LIMIT, PER_IP_WINDOW_MS);
+  if (!limit.allowed) {
+    return NextResponse.json(
+      { error: 'Too many submissions. Please try again in a moment.' },
+      { status: 429, headers: { 'Retry-After': String(limit.retryAfter) } }
+    );
+  }
+
+  let body: unknown;
 
   try {
     body = await request.json();
@@ -16,7 +31,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid request body.' }, { status: 400 });
   }
 
-  const { name, title, description, company } = body;
+  const { name, title, description, company } = (body ?? {}) as Record<string, unknown>;
 
   // Honeypot: real users never fill this hidden field. Pretend success so bots don't retry.
   if (typeof company === 'string' && company.trim().length > 0) {
