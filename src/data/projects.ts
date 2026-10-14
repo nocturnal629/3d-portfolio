@@ -2,6 +2,12 @@ import { Project } from '@/types';
 
 export const projects: Project[] = [
   {
+    title: "Nyx",
+    description: "A local, voice-driven AI desktop companion — an always-on-top, transparent Live2D character that listens, thinks, and talks back in a cloned voice. Speech recognition, the chat model, and voice synthesis all run on-device and stream in real time, with persistent memory and screen-reading for context.",
+    tech: ["Python", "PyQt6", "Live2D", "faster-whisper", "Ollama", "Chatterbox-TTS", "CUDA", "SQLite"],
+    image: "/projects/nyx.png"
+  },
+  {
     title: "Care AI Agent",
     description: "An AI-powered virtual agent that handles customer care interactions end-to-end, from querying customer account data and service records to performing actions such as raising complaints, sending notifications, and escalating to live agents when needed.",
     tech: ["Python", "LangGraph", "Agentic AI", "REST APIs", "Azure DevOps"]

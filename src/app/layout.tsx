@@ -14,7 +14,7 @@ import { profile } from '@/data/profile';
 
 const title = `${profile.name} — ${profile.role}`;
 const description =
-  'A 3D, space-themed portfolio: scroll to fly between worlds, or ask NOVA, the onboard AI, about the work. Full Stack LLM Developer specializing in Python, FastAPI, AWS, and TypeScript.';
+  'A 3D, space-themed portfolio: scroll to fly between worlds, or ask NOVA, the onboard AI, about the work. AI/ML Engineer specializing in Python, FastAPI, AWS, and TypeScript.';
 
 export const viewport: Viewport = {
   width: 'device-width',

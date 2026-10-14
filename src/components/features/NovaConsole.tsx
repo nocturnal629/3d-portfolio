@@ -138,7 +138,7 @@ export default function NovaConsole() {
               first.focus();
             }
           }}
-          className="panel-solid animate-cosmos-rise fixed bottom-20 right-3 z-40 flex h-[min(34rem,72vh)] w-[min(26rem,calc(100vw-1.5rem))] flex-col overflow-hidden sm:bottom-24 sm:right-6"
+          className="panel-solid animate-cosmos-rise fixed inset-0 z-40 flex h-[100dvh] w-screen flex-col overflow-hidden rounded-none [padding-bottom:env(safe-area-inset-bottom)] [padding-left:env(safe-area-inset-left)] [padding-right:env(safe-area-inset-right)] [padding-top:env(safe-area-inset-top)] sm:inset-auto sm:bottom-24 sm:right-6 sm:h-[min(34rem,72vh)] sm:w-[min(26rem,calc(100vw-1.5rem))] sm:rounded-2xl sm:p-0"
         >
           <header className="flex items-center justify-between border-b border-white/10 px-4 py-3">
             <div>

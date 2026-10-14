@@ -9,7 +9,7 @@ export default function Readout() {
   const section = sectionById[activeId];
 
   return (
-    <div className="pointer-events-none fixed left-4 top-4 z-30 max-w-[min(20rem,70vw)] sm:left-6 sm:top-6">
+    <div className="pointer-events-none fixed left-4 top-4 z-30 max-w-[min(20rem,55vw)] sm:left-6 sm:top-6">
       <div className="flex items-center gap-2">
         <span className="relative flex h-2 w-2">
           <span className="absolute inline-flex h-full w-full animate-cosmos-pulse rounded-full bg-nova" />
