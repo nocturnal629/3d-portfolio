@@ -10,9 +10,10 @@ export const profile = {
   // Canonical origin: drives `metadataBase`, so Open Graph image URLs, the
   // sitemap and robots.txt all resolve against it. It must be a host that
   // actually serves the site, or link previews break and crawlers are pointed
-  // somewhere that does not answer. Vercel's other aliases for this project
-  // sit behind Deployment Protection; this one is the public one.
-  site: 'https://3d-portfolio-nine-taupe.vercel.app',
+  // somewhere that does not answer. The apex redirects to www, so www is the
+  // canonical form. Vercel's *.vercel.app aliases for this project sit behind
+  // Deployment Protection and are not suitable here.
+  site: 'https://www.aldrian-a.dev',
   socials: {
     github: 'https://github.com/nocturnal629',
     githubRepos: 'https://github.com/nocturnal629?tab=repositories',
