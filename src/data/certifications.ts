@@ -2,6 +2,12 @@ import { Certification } from '@/types';
 
 export const certifications: Certification[] = [
   {
+    name: 'Claude Certified Associate: Foundations',
+    issuer: 'Anthropic',
+    logo: '/logos/claude-certified-associate-foundations.png',
+    date: 'Issued Oct 2026 · Expires Oct 2027',
+  },
+  {
     name: 'AWS Certified Cloud Practitioner',
     issuer: 'Amazon Web Services',
     logo: '/logos/aws-certified-cloud-practitioner.png',
