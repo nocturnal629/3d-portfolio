@@ -16,6 +16,7 @@ export const projects: Project[] = [
     title: "Image AI",
     description: "An AI-powered content moderation platform that validates and filters user-submitted images related to the Kumamon mascot character using multi-agent workflows.",
     tech: ["Python", "FastAPI", "React", "AWS ECS", "AWS Bedrock", "DynamoDB", "S3", "CloudFront", "Docker", "Gemini API", "Claude API"],
+    link: "http://kumamon-alb-526093523.ap-northeast-1.elb.amazonaws.com/",
     image: "/projects/image-ai.png"
   },
   {
