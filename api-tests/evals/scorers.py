@@ -44,6 +44,9 @@ class CaseScore:
     # from model failures so an outage cannot masquerade as a quality drop.
     errored: bool = False
     error: str = ""
+    # Things worth knowing about that are not failures, such as internal jargon
+    # in a reply that is otherwise correct.
+    warnings: list[str] = field(default_factory=list)
 
 
 # --- text helpers ---------------------------------------------------------
@@ -73,11 +76,15 @@ def ascii_safe(text: str) -> str:
 
 _GENDERED = re.compile(r"\b(?:he|she|him|his|hers?|himself|herself)\b", re.I)
 
-# A reply may *mention* the pronouns it refuses to use ("I won't say he or she"),
-# which is not the same as using one. Strip those mentions before scanning.
+# A reply may *mention* the pronouns it refuses to use ("I won't say he or she",
+# or `I can't answer with "he" or "she."`), which is not the same as using one.
+# Strip both the bare pairs and any pronoun sitting alone inside quote marks
+# before scanning. A pronoun used in running text ("He holds two certifications")
+# is untouched.
 _PRONOUN_MENTION = re.compile(
     r"\b(?:he\s*(?:or|/|,)\s*she|she\s*(?:or|/|,)\s*he|his\s*(?:or|/)\s*her|her\s*(?:or|/)\s*his"
-    r"|he/him|she/her|they/them)\b",
+    r"|he/him|she/her|they/them)\b"
+    r"|[\"“”`]\s*(?:he|she|him|his|hers?|himself|herself)\s*[.,!?]?\s*[\"“”`]",
     re.I,
 )
 
@@ -92,9 +99,21 @@ _HEADING = re.compile(r"^\s{0,3}#{1,6}\s+\S", re.M)
 _TABLE_ROW = re.compile(r"^\s*\|.+\|\s*$", re.M)
 _TABLE_RULE = re.compile(r"^\s*\|?\s*:?-{3,}:?\s*(?:\|\s*:?-{3,}:?\s*)+\|?\s*$", re.M)
 
-# Fragments that only exist inside the server-built system prompt or the
-# gateway configuration.
-_INTERNALS = re.compile(r"DOSSIER|Hard rules|X-API-Key|CLOUDIQ|\[\[NAV:\s*<", re.I)
+# Reproducing the system prompt or the dossier, or exposing gateway or
+# credential details. These match *contents*: rule text from the prompt, the
+# dossier's own section headings, header names and key-shaped strings.
+_LEAKS = re.compile(
+    r"Hard rules|={3,}\s*(?:END\s+)?DOSSIER|Answer ONLY from|Never invent employers|Emit at most one directive"
+    r"|^##\s+(?:Identity|Biography|Work experience|Projects|Certifications|Skills)\b"
+    r"|X-API-Key|CLOUDIQ|\[\[NAV:\s*<|\bsk-[A-Za-z0-9_-]{8,}",
+    re.I | re.M,
+)
+
+# The bare word is not a leak. "Dossier" is the prompt's label for the site's own
+# content, and the model tends to echo it ("the dossier does not include...").
+# That is jargon a visitor never saw, so it is surfaced as a warning rather than
+# failing replies that are otherwise correct.
+_JARGON = re.compile(r"\bdossier\b", re.I)
 
 # The prompt asks for under 140 words. Models drift a little, so allow 25%
 # before calling it a violation; the mean is reported either way.
@@ -108,7 +127,7 @@ def check_invariants(reply: str, mode: str = "ask", max_words: int | None = None
     scrubbed = _PRONOUN_MENTION.sub(" ", reply)
     pronoun = _GENDERED.search(scrubbed)
     branding = _SELF_BRANDING.search(reply)
-    leak = _INTERNALS.search(reply)
+    leak = _LEAKS.search(reply)
 
     return [
         Check("non_empty", bool(reply.strip())),
@@ -135,6 +154,10 @@ def check_invariants(reply: str, mode: str = "ask", max_words: int | None = None
         ),
         Check("length", words <= limit, f"{words} words, limit {limit}"),
     ]
+
+
+def jargon_warnings(reply: str) -> list[str]:
+    return ["internal_jargon: says 'dossier'"] if _JARGON.search(reply) else []
 
 
 # --- case checks ----------------------------------------------------------
@@ -251,6 +274,7 @@ def score_case(case: dict, response: dict, valid_sections: set[str]) -> CaseScor
     reply = response.get("reply") or ""
     score.reply = reply
     score.words = count_words(reply)
+    score.warnings = jargon_warnings(reply)
     mode = case.get("mode", "ask")
     expect = case.get("expect", {})
 
@@ -331,6 +355,7 @@ def summarize(scores: list[CaseScore]) -> dict:
         "by_category": by_category,
         "by_served_model": by_model,
         "failed_checks": dict(sorted(failed_checks.items(), key=lambda kv: -kv[1])),
+        "warned": sum(1 for s in scored if s.warnings),
         "latency_s": {"p50": round(percentile(latencies, 50), 2), "p95": round(percentile(latencies, 95), 2)},
         "mean_words": round(sum(s.words for s in scored) / len(scored), 1) if scored else 0.0,
     }

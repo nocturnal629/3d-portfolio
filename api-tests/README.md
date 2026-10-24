@@ -119,8 +119,17 @@ the shared key's 200 daily calls and take about six minutes. Useful flags:
 
 Every reply is held to **invariants** taken from the system prompt: no gendered
 pronouns, never claiming to be another model, no markdown headings or tables,
-under 140 words (25% tolerance; fit-check replies get more), no prompt or
-gateway internals, and no `[[NAV: ...]]` directive leaking into the text.
+under 140 words (25% tolerance; fit-check replies get more), no reproduction of
+the system prompt, dossier or gateway details, and no `[[NAV: ...]]` directive
+leaking into the text.
+
+The leak check matches *contents* (rule text from the prompt, the dossier's own
+section headings, header names, key-shaped strings), not the word "dossier". NOVA
+says "the dossier" in many ordinary replies because the prompt calls its source
+material that, which is jargon a visitor never saw but not a leak. That is reported
+as a **warning** in the summary rather than failing replies that are otherwise
+correct. Pronouns are checked in running text only: a refusal that quotes `"he"` or
+`"she"` while declining to use them is fine.
 
 On top of that each case in `golden.json` can require facts, forbid claims,
 require a navigation target, or require the fit-check shape (a verdict, then
@@ -159,6 +168,21 @@ python -m evals.runner --baseline evals/baseline.json --fail-on-regression
 
 Full replies and failing checks for every run are written to
 `evals/reports/<timestamp>.json` (git-ignored).
+
+### Changing a scorer without spending more calls
+
+Saved reports hold every reply, so a scorer fix can be checked against real output
+for free:
+
+```bash
+python -m evals.runner --rescore evals/reports/<timestamp>.json
+python -m evals.runner --rescore evals/reports/a.json evals/reports/b.json --save-baseline evals/baseline.json
+```
+
+`--rescore` makes no model calls, applies the current scorers and gold set, and
+holds the result to the same gates as a live run. Several reports are combined, so
+a full baseline can be assembled from partial runs. Cases that have left the gold
+set are skipped.
 
 ### What it does not do
 
