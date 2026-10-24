@@ -2,7 +2,14 @@ import Image from 'next/image';
 import { FiArrowUpRight } from 'react-icons/fi';
 import type { Project } from '@/types';
 
-export default function ProjectCard({ title, description, tech, link, image }: Project) {
+export default function ProjectCard({
+  title,
+  description,
+  tech,
+  link,
+  image,
+  imagePosition,
+}: Project) {
   return (
     <article className="panel panel-hover flex flex-col overflow-hidden">
       {image && (
@@ -15,6 +22,7 @@ export default function ProjectCard({ title, description, tech, link, image }: P
             // avoids shipping a full-width source for a half-width slot.
             sizes="(min-width: 1024px) 24rem, 100vw"
             className="object-cover"
+            style={imagePosition ? { objectPosition: imagePosition } : undefined}
           />
           {/* Keeps bright screenshots from fighting the dark panel. */}
           <div className="absolute inset-0 bg-gradient-to-t from-panel/80 to-transparent" />

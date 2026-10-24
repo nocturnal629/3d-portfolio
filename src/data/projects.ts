@@ -36,6 +36,13 @@ export const projects: Project[] = [
     image: "/projects/personal-rag.jpg"
   },
   {
+    title: "DinoAI",
+    description: "A reinforcement-learning agent that learns to play Chrome's offline Dino game purely from pixels: it captures the screen, feeds four stacked grayscale frames to a DQN with a CNN policy, and presses real keys to jump and duck. Game-over is detected with OpenCV template matching, and training runs on CUDA, ROCm, DirectML, or CPU.",
+    tech: ["Python", "PyTorch", "Reinforcement Learning", "DQN", "Stable-Baselines3", "Gymnasium", "OpenCV"],
+    image: "/projects/dino.png",
+    imagePosition: "left"
+  },
+  {
     title: "ETL LLM Feed",
     description: "A scheduled data pipeline that ingests recent page changes from minecraft.wiki every six hours, has Gemini Flash extract topics, a summary, and an interest score for each, and has Gemini Pro write a daily digest, all served through a Next.js dashboard.",
     tech: ["Python", "Gemini API", "Pydantic", "PostgreSQL", "Next.js", "Tailwind CSS", "Vercel Cron"],

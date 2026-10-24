@@ -80,6 +80,13 @@
       "expect": { "must_include": [["Gemini"], ["minecraft"]] }
     },
     {
+      "id": "fact-dinoai",
+      "category": "factual",
+      "question": "What is the DinoAI project and how does it learn?",
+      "evidence": ["DinoAI", "DQN"],
+      "expect": { "must_include": [["reinforcement"], ["DQN", "Dino"]] }
+    },
+    {
       "id": "fact-databases",
       "category": "factual",
       "question": "Which databases do they have experience with?",

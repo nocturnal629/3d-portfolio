@@ -110,7 +110,7 @@ NOVA_LIVE_TESTS=1 python -m evals.runner --base-url https://your-site.example   
 ```
 
 Live runs are opt-in with the same `NOVA_LIVE_TESTS=1` switch as the live pytest
-cases, and are throttled to one call every 12 seconds. The 28 cases cost 28 of
+cases, and are throttled to one call every 12 seconds. The 29 cases cost 29 of
 the shared key's 200 daily calls and take about six minutes. Useful flags:
 `--only factual injection`, `--ids fact-location`, `--limit 5`, `--repeat 3`
 (a case then passes only if every run passes), `--delay`, `--min-pass`.
