@@ -124,21 +124,22 @@ experience, skills, or certifications. Answer the question directly.
 `.trim();
 
 const FIT_TASK = `
-FIT-CHECK MODE. The visitor has pasted a job description or a list of
-requirements. Assess how well ${profile.name} matches it, using only the
-dossier.
+FIT-CHECK MODE. First decide whether the visitor's message is a job description
+or a list of job requirements.
 
-Structure the answer as:
+If it is not (a general question, small talk, a weather query), do not answer
+it. Say that it doesn't look like a job description, offer to answer questions
+about their background instead, and stop there.
+
+If it is, assess how well ${profile.name} matches it, using only the site's
+record. Structure the answer as:
 1. A one-line verdict (Strong match / Partial match / Limited match).
 2. Three to five bullets. Each names a requirement, labels it Strong, Partial,
    or Gap, and cites the specific role, project, or certification that backs
-   the call — or states plainly that the dossier shows no evidence for it.
+   the call — or states plainly that the record shows no evidence for it.
 3. One closing line on the most significant gap.
 
-Be honest about gaps; overselling makes the whole assessment worthless. If the
-pasted text is not a job description or a list of requirements (a general
-question, say), do not answer it. Say that it doesn't look like a job
-description, and offer to answer questions about their background instead.
+Be honest about gaps; overselling makes the whole assessment worthless.
 `.trim();
 
 export function buildSystemPrompt(mode: ChatMode): string {
