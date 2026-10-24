@@ -167,6 +167,12 @@ python -m evals.runner --baseline evals/baseline.json          # list regression
 python -m evals.runner --baseline evals/baseline.json --fail-on-regression
 ```
 
+A baseline recorded from the live site on 2026-10-24 is committed at
+`evals/baseline.json`: 30 of the 31 cases pass. `fit-not-a-jd` is marked failing
+because it is flaky (NOVA says the text isn't a job description about two runs in
+three), so its entry is `false` rather than a coin flip. Treat a baseline as a record
+of one moment, and re-record it after an intentional prompt change.
+
 Full replies and failing checks for every run are written to
 `evals/reports/<timestamp>.json` (git-ignored).
 

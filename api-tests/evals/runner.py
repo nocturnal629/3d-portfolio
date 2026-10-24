@@ -165,6 +165,12 @@ def rescore_reports(paths: list[Path], dataset: dict, sections: set[str]) -> lis
     return [score for runs in latest.values() for score in runs]
 
 
+def saved_base_urls(paths: list[Path]) -> set[str]:
+    """Where the saved reports' replies were recorded from."""
+    urls = {json.loads(path.read_text(encoding="utf-8")).get("base_url") for path in paths}
+    return {url for url in urls if url}
+
+
 def print_case(score: CaseScore, index: int, total: int) -> None:
     status = "ERR " if score.errored else ("PASS" if score.passed else "FAIL")
     model = f", {score.served_model}" if score.served_model else ""
@@ -338,6 +344,11 @@ def main(argv: list[str] | None = None) -> int:
         if not scores:
             print("Nothing to rescore.", file=sys.stderr)
             return 2
+        # The replies came from wherever they were recorded, not from the default
+        # URL, so a baseline built here must say so.
+        origins = saved_base_urls(args.rescore)
+        if origins:
+            args.base_url = ", ".join(sorted(origins))
         print(f"re-scoring {len(scores)} saved run(s); no model calls.")
         for index, score in enumerate(scores, start=1):
             print_case(score, index, len(scores))

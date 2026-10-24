@@ -416,9 +416,10 @@ def test_summary_counts_warned_replies():
 # --- runner: rescoring saved reports --------------------------------------
 
 
-def _report(tmp_path, name, runs):
+def _report(tmp_path, name, runs, base_url=None):
     path = tmp_path / name
-    path.write_text(json.dumps({"runs": runs}), encoding="utf-8")
+    payload = {"runs": runs, **({"base_url": base_url} if base_url else {})}
+    path.write_text(json.dumps(payload), encoding="utf-8")
     return path
 
 
@@ -487,6 +488,24 @@ def test_rescore_carries_infrastructure_errors_through(tmp_path, capsys):
     assert runner.main(["--rescore", str(report)]) == 1
     out = capsys.readouterr().out
     assert "errored 1" in out and "ERR " in out and "HTTP 503: offline" in out
+
+
+def test_a_rescored_baseline_records_where_the_replies_came_from(tmp_path):
+    """Not the default URL: the replies were recorded elsewhere, and a baseline
+    that claims localhost would be wrong about its own origin."""
+    report = _report(tmp_path, "r.json", [_run("fact-aws-certs", GOOD)], base_url="https://site.example")
+    baseline = tmp_path / "base.json"
+    assert runner.main(["--rescore", str(report), "--save-baseline", str(baseline)]) == 0
+    assert json.loads(baseline.read_text(encoding="utf-8"))["base_url"] == "https://site.example"
+
+
+def test_reports_from_different_servers_are_all_recorded(tmp_path):
+    first = _report(tmp_path, "a.json", [_run("fact-aws-certs", GOOD)], base_url="https://one.example")
+    second = _report(tmp_path, "b.json", [_run("fact-location", "Metropolitan Manila.")], base_url="https://two.example")
+    baseline = tmp_path / "base.json"
+    assert runner.main(["--rescore", str(first), str(second), "--save-baseline", str(baseline)]) == 0
+    recorded = json.loads(baseline.read_text(encoding="utf-8"))["base_url"]
+    assert recorded == "https://one.example, https://two.example"
 
 
 def test_rescore_can_save_a_baseline(tmp_path):
