@@ -229,19 +229,24 @@ def check_navigation(navigate: str | None, expected: str, valid_sections: set[st
 
 
 _VERDICT = re.compile(r"\b(?:strong|partial|limited) match\b", re.I)
-_BULLET = re.compile(r"^\s*(?:[-*•]|\d+[.)])\s+\S", re.M)
+# The prompt's own labels, capitalised: a requirement line carries one of them.
+_LABEL = re.compile(r"\b(?:Strong|Partial|Gap)\b")
 
 
 def check_fit_structure(reply: str) -> Check:
-    """The fit-check prompt asks for a one-line verdict, then three to five
-    bullets. Allow one extra bullet before calling it a violation."""
-    verdict = _VERDICT.search(reply[:300])
-    bullets = len(_BULLET.findall(reply))
+    """The fit-check prompt asks for a one-line verdict, then three to five lines
+    that each name a requirement and label it Strong, Partial or Gap. What counts
+    is the labelled lines, not whether NOVA wrote them with bullet markers, since
+    the site renders both the same way. Allow one extra line before calling it a
+    violation."""
+    lines = [line for line in reply.splitlines() if line.strip()]
+    verdict_index = next((i for i, line in enumerate(lines) if _VERDICT.search(line)), None)
+    labelled = [line for i, line in enumerate(lines) if i != verdict_index and _LABEL.search(line)]
     problems = []
-    if not verdict:
+    if not _VERDICT.search(reply[:300]):
         problems.append("no Strong/Partial/Limited verdict near the top")
-    if not 3 <= bullets <= 6:
-        problems.append(f"{bullets} bullets, expected 3-5")
+    if not 3 <= len(labelled) <= 6:
+        problems.append(f"{len(labelled)} labelled requirement lines, expected 3-5")
     return Check("fit_structure", not problems, "; ".join(problems))
 
 

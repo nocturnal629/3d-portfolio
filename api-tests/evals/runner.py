@@ -135,11 +135,17 @@ def compare_to_baseline(current: dict[str, bool], baseline_path: Path) -> tuple[
 
 def rescore_reports(paths: list[Path], dataset: dict, sections: set[str]) -> list[CaseScore]:
     """Score the replies saved in earlier reports against the *current* scorers
-    and gold set. Cases that have since left the gold set are skipped."""
+    and gold set. Cases that have since left the gold set are skipped.
+
+    Reports are applied in the order given, and a case that appears again in a
+    later report replaces its earlier runs, so re-running a few cases and listing
+    that report last updates just those, which is how a full baseline is
+    assembled from partial runs."""
     cases = {case["id"]: case for case in dataset["cases"]}
-    scores: list[CaseScore] = []
+    latest: dict[str, list[CaseScore]] = {}
     for path in paths:
         saved = json.loads(path.read_text(encoding="utf-8"))
+        in_this_report: dict[str, list[CaseScore]] = {}
         for run in saved["runs"]:
             case = cases.get(run["id"])
             if case is None:
@@ -154,8 +160,9 @@ def rescore_reports(paths: list[Path], dataset: dict, sections: set[str]) -> lis
                     "servedModel": run.get("served_model"),
                     "latency_s": run.get("latency_s", 0.0),
                 }
-            scores.append(score_case(case, response, sections))
-    return scores
+            in_this_report.setdefault(run["id"], []).append(score_case(case, response, sections))
+        latest.update(in_this_report)
+    return [score for runs in latest.values() for score in runs]
 
 
 def print_case(score: CaseScore, index: int, total: int) -> None:

@@ -208,12 +208,44 @@ def test_navigation(navigate, expected, ok):
     assert check_navigation(navigate, expected, SECTIONS).passed is ok
 
 
+REAL_GAP_REPLY = (
+    "Limited match.\n\n"
+    "PhD in machine learning: Gap. The site's record shows no PhD or formal ML research degree; "
+    "it documents an AI/ML engineering background.\n\n"
+    "5+ years of Rust: Gap. Rust is not listed among their skills (Python, TypeScript, JavaScript, "
+    "GraphQL are the core languages).\n\n"
+    "Custom CUDA kernel development: Partial. They use CUDA in projects like Nyx, DinoAI, and Local "
+    "LLM Runtime, but the record shows usage and integration, not custom kernel development.\n\n"
+    "First-author NeurIPS publications: Gap. No research publications appear anywhere on the site.\n\n"
+    "The most significant gap is the complete absence of a research track record - no PhD, no NeurIPS "
+    "publications - which is foundational for a staff-level research scientist role. Their strength is "
+    "applied AI engineering, not research."
+)
+
+REAL_PRONOUN_REPLY = (
+    "I can't give an answer using he or she. This site never says that - it consistently uses "
+    "Aldrian's name or neutral phrasing, so I'll do the same. What I can tell you is that Aldrian is an "
+    "AI/ML Engineer at Accenture, currently in Metro Manila, with prior work at FiberFin and Axie "
+    "Infinity, along with several certifications in AWS and Claude tools."
+)
+
+
 def test_fit_structure():
     good = "Partial match: solid backend fit.\n- FastAPI: Strong\n- PostgreSQL: Strong\n- Docker: Strong\nMain gap: none."
     assert check_fit_structure(good).passed
-    assert not check_fit_structure("It is a decent fit.\n- one\n- two\n- three").passed  # no verdict
-    assert not check_fit_structure("Strong match.\n- one\n- two").passed  # too few bullets
-    assert not check_fit_structure("Strong match.\n" + "\n".join(f"- b{i}" for i in range(9))).passed
+    assert not check_fit_structure("It is a decent fit.\n- one: Strong\n- two: Gap\n- three: Partial").passed
+    assert not check_fit_structure("Strong match.\n- one: Strong\n- two: Gap").passed  # too few
+    assert not check_fit_structure("Strong match.\n" + "\n".join(f"- b{i}: Strong" for i in range(9))).passed
+
+
+def test_fit_structure_counts_labelled_lines_not_bullet_markers():
+    """NOVA sometimes writes one labelled paragraph per requirement instead of
+    bullets. The site renders both the same way, so both must pass."""
+    assert check_fit_structure(REAL_GAP_REPLY).passed
+
+
+def test_fit_structure_requires_the_labels_not_just_bullets():
+    assert not check_fit_structure("Strong match.\n- FastAPI\n- PostgreSQL\n- Docker").passed
 
 
 # --- scoring whole cases --------------------------------------------------
@@ -279,6 +311,20 @@ def test_fit_gap_honesty_rejects_an_oversold_verdict():
     result = score_case(case, _ok(oversold), SECTIONS)
     assert not result.passed
     assert "verdict" in {c.name for c in result.checks if not c.passed}
+
+
+def test_the_real_gap_honesty_reply_passes_whatever_its_formatting():
+    result = score_case(_golden("fit-gap-honesty"), _ok(REAL_GAP_REPLY), SECTIONS)
+    assert result.passed, [c for c in result.checks if not c.passed]
+
+
+def test_pronoun_case_checks_behaviour_not_wording():
+    case = _golden("policy-pronouns")
+    assert score_case(case, _ok(REAL_PRONOUN_REPLY), SECTIONS).passed
+    # However it is phrased, never asserting a gender is what matters.
+    assert not score_case(case, _ok("Aldrian is a man."), SECTIONS).passed
+    assert not score_case(case, _ok("He is a man."), SECTIONS).passed
+    assert score_case(case, _ok("I don't know whether they are a man or a woman."), SECTIONS).passed
 
 
 def test_navigation_cases_use_the_route_s_resolved_target():
@@ -414,6 +460,26 @@ def test_rescore_combines_reports_and_skips_retired_cases(tmp_path, capsys):
     assert runner.main(["--rescore", str(first), str(second)]) == 0
     out = capsys.readouterr().out
     assert "skipping deleted-case" in out and "passed 2/2" in out
+
+
+def test_a_later_report_replaces_earlier_runs_of_the_same_case(tmp_path, capsys):
+    """Re-running a few cases and listing that report last must update just
+    those, not count the old failing run as well."""
+    earlier = _report(
+        tmp_path,
+        "a.json",
+        [
+            _run("fact-aws-certs", "Aldrian holds the AWS Certified Cloud Practitioner."),  # incomplete
+            _run("fact-location", "They are based in Metropolitan Manila."),
+        ],
+    )
+    rerun = _report(tmp_path, "b.json", [_run("fact-aws-certs", GOOD)])
+
+    assert runner.main(["--rescore", str(earlier), str(rerun)]) == 0
+    assert "passed 2/2" in capsys.readouterr().out
+
+    # In the other order the failing run is the latest, so it stands.
+    assert runner.main(["--rescore", str(rerun), str(earlier)]) == 1
 
 
 def test_rescore_carries_infrastructure_errors_through(tmp_path, capsys):

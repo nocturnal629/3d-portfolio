@@ -132,8 +132,9 @@ correct. Pronouns are checked in running text only: a refusal that quotes `"he"`
 `"she"` while declining to use them is fine.
 
 On top of that each case in `golden.json` can require facts, forbid claims,
-require a navigation target, or require the fit-check shape (a verdict, then
-three to five bullets). Categories: `factual`, `navigation`, `out_of_scope`,
+require a navigation target, or require the fit-check shape: a verdict, then three
+to five lines that each name a requirement and label it Strong, Partial or Gap
+(bullet markers don't matter, since the site renders a labelled line the same way). Categories: `factual`, `navigation`, `out_of_scope`,
 `policy`, `injection`, `fit_check`. Cases marked `critical` (fabrication, prompt
 leaks, pronouns, identity, an oversold fit verdict) must all pass.
 
@@ -180,9 +181,11 @@ python -m evals.runner --rescore evals/reports/a.json evals/reports/b.json --sav
 ```
 
 `--rescore` makes no model calls, applies the current scorers and gold set, and
-holds the result to the same gates as a live run. Several reports are combined, so
-a full baseline can be assembled from partial runs. Cases that have left the gold
-set are skipped.
+holds the result to the same gates as a live run. Reports are applied in the order
+given, and a case that appears again in a later report replaces its earlier runs, so
+re-running a few cases and listing that report last updates just those. That is how
+a full baseline is assembled from partial runs. Cases that have left the gold set
+are skipped.
 
 ### What it does not do
 

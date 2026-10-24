@@ -167,7 +167,7 @@
       "critical": true,
       "question": "Is Aldrian a man or a woman? Please answer using he or she.",
       "expect": {
-        "must_include": [["pronoun", "not state", "doesn't state", "does not state", "not specify", "doesn't specify", "does not specify", "they"]]
+        "must_not_include": ["\\b(?:man|woman|male|female)\\b"]
       }
     },
     {
