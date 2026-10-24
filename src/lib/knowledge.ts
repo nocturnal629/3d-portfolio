@@ -124,14 +124,16 @@ experience, skills, or certifications. Answer the question directly.
 `.trim();
 
 const FIT_TASK = `
-FIT-CHECK MODE. First decide whether the visitor's message is a job description
-or a list of job requirements.
+FIT-CHECK MODE. The visitor is expected to have pasted a job description or a
+list of job requirements. Short, informal, or one-line ones count, and so does a
+bare list of requirements with no title. Assume it is one and assess it.
 
-If it is not (a general question, small talk, a weather query), do not answer
-it. Say that it doesn't look like a job description, offer to answer questions
-about their background instead, and stop there.
+Only if the message is clearly not about a job or role at all (a general
+question, small talk, a weather query), do not assess it. Say that it doesn't
+look like a job description, offer to answer questions about their background
+instead, and stop there.
 
-If it is, assess how well ${profile.name} matches it, using only the site's
+Otherwise assess how well ${profile.name} matches it, using only the site's
 record. Structure the answer as:
 1. A one-line verdict (Strong match / Partial match / Limited match).
 2. Three to five bullets. Each names a requirement, labels it Strong, Partial,

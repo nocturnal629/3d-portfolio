@@ -234,6 +234,26 @@
       }
     },
     {
+      "id": "fit-informal-jd",
+      "category": "fit_check",
+      "mode": "fit",
+      "question": "We're hiring a Python developer who knows FastAPI and AWS. Remote, mid-level.",
+      "expect": {
+        "structure": "fit",
+        "must_include": [["Strong match", "Partial match", "Limited match"]]
+      }
+    },
+    {
+      "id": "fit-bare-requirements",
+      "category": "fit_check",
+      "mode": "fit",
+      "question": "Requirements:\n- 3+ years of Python\n- Experience building LLM agents\n- Comfortable with Docker and AWS",
+      "expect": {
+        "structure": "fit",
+        "must_include": [["Strong match", "Partial match", "Limited match"]]
+      }
+    },
+    {
       "id": "fit-gap-honesty",
       "category": "fit_check",
       "mode": "fit",
